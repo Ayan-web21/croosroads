@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crossroads Game with Graphics</title>
+<title>Crossroads Game (WASD)</title>
 <style>
   body {
     margin: 0; 
@@ -94,7 +94,7 @@
   const playerSpeed = 8;
 
   let cars = [];
-  let carSpawnInterval = 1500; // milliseconds
+  let carSpawnInterval = 1500;
   let lastSpawnTime = 0;
 
   let score = 0;
@@ -106,21 +106,20 @@
     'https://i.ibb.co/FVZ7Hvc/green-car.png'
   ];
 
-  // Controls
   const keys = {};
 
   window.addEventListener('keydown', e => {
-    keys[e.key] = true;
-    if (gameOver && (e.key === 'r' || e.key === 'R')) {
+    keys[e.key.toLowerCase()] = true;
+    if (gameOver && e.key.toLowerCase() === 'r') {
       resetGame();
     }
   });
+
   window.addEventListener('keyup', e => {
-    keys[e.key] = false;
+    keys[e.key.toLowerCase()] = false;
   });
 
   function createCar() {
-    // Choose random lane and enemy car image
     let laneIndex = Math.floor(Math.random() * lanePositions.length);
     let imgIndex = Math.floor(Math.random() * enemyCarImages.length);
 
@@ -129,30 +128,29 @@
     car.style.backgroundImage = `url('${enemyCarImages[imgIndex]}')`;
     game.appendChild(car);
 
-    // Start at top of screen at lane x
     let x = lanePositions[laneIndex];
     let y = -playerHeight;
 
     car.style.left = x + 'px';
     car.style.top = y + 'px';
 
-    cars.push({element: car, x, y, speed: 3 + Math.random() * 3, lane: laneIndex});
+    cars.push({element: car, x, y, speed: 3 + Math.random() * 3});
   }
 
   function movePlayer() {
-    if (keys['ArrowLeft']) {
+    if (keys['a']) {
       playerX -= playerSpeed;
       if (playerX < lanePositions[0]) playerX = lanePositions[0];
     }
-    if (keys['ArrowRight']) {
+    if (keys['d']) {
       playerX += playerSpeed;
       if (playerX > lanePositions[lanePositions.length - 1]) playerX = lanePositions[lanePositions.length - 1];
     }
-    if (keys['ArrowUp']) {
+    if (keys['w']) {
       playerY -= playerSpeed;
       if (playerY < 0) playerY = 0;
     }
-    if (keys['ArrowDown']) {
+    if (keys['s']) {
       playerY += playerSpeed;
       if (playerY > gameHeight - playerHeight) playerY = gameHeight - playerHeight;
     }
@@ -160,7 +158,7 @@
     player.style.top = playerY + 'px';
   }
 
-  function updateCars(deltaTime) {
+  function updateCars() {
     for (let i = cars.length - 1; i >= 0; i--) {
       let car = cars[i];
       car.y += car.speed;
@@ -192,23 +190,17 @@
     }
   }
 
-  let lastTime = 0;
   function gameLoop(timestamp = 0) {
-    if (!lastTime) lastTime = timestamp;
-    const deltaTime = timestamp - lastTime;
-    lastTime = timestamp;
+    movePlayer();
+    updateCars();
+    checkCollision();
 
     if (!gameOver) {
-      movePlayer();
-      updateCars(deltaTime);
-      checkCollision();
-
       if (timestamp - lastSpawnTime > carSpawnInterval) {
         createCar();
         lastSpawnTime = timestamp;
         if (carSpawnInterval > 700) carSpawnInterval -= 10;
       }
-
       scoreboard.textContent = 'Score: ' + score;
     }
 
@@ -231,13 +223,10 @@
     message.style.display = 'none';
   }
 
-  // Init player position
   player.style.left = playerX + 'px';
   player.style.top = playerY + 'px';
-
   gameLoop();
 })();
 </script>
 </body>
 </html>
-
