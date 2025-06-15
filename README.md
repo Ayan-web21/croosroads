@@ -1,18 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crossroads Game - Working Base64 Images</title>
+<title>Crossroads Game</title>
 <style>
-  html, body {
-    margin: 0; padding: 0; overflow: hidden; background: #222;
+  body, html {
+    margin: 0; padding: 0; background: #222;
+    display: flex; justify-content: center; align-items: center; height: 100vh;
   }
   canvas {
-    display: block;
-    margin: 0 auto;
     background: #444;
+    display: block;
+    border: 2px solid #ccc;
   }
 </style>
 </head>
@@ -20,11 +20,182 @@
 <canvas id="game" width="400" height="600"></canvas>
 
 <script>
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
+// Setup canvas and context
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
 
-  // Simple colored rectangles as images encoded as base64 PNGs
-  const roadImgSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABkCAYAAADqghb9AAAABHNCSVQICAgIfAhkiAAABq9JREFUeJzt3QeIVUeWx/HfB3bOp5HTZbAseOaYozWUpCgUg9CrsZCys0zWoLUCEylEGiKrKK3VhhpjvYISwNRqKS2ZoQ1HQGEwoQRcRcKHcizb6ZPfof+01vP35PZce+/v6nPx7d+9qYzZ95f3nrvO3tv32du1y+P3v6v6/TxS00ttzPtpv3HPY3w6POU5+2vT9Aq/CnPQT+UWxk13Tv8jwBPo6iVChK/0QoUol8JIlShR+AMJC6Ro/4IQItLpNk3i+U4x8uQvNPX2JfSNGRe7DfqvSNTXdeVITetxxAPcxrIL0d0y5E7QNvSxT+MeD8hDaCj5FoCx0EY2VseS0qsyiZUz5Ru1ziIm3uH7PcpITnxzIh93OLINRwqU0fTWFSJD7Te9zqyK+uLQ/TljO0fXPnLUQpm+zfuq/ncEm+c7JMgNLT9zTf3mG3Q9XoGpFmhVrUY6nqXZbCVHkyzN0c6Nf0jq4ntn5C3D9/Vu+6TgqXn9HtT6VytW/kd5ILxf81qPlAq7r0G1X/n8X7B9NqclOtWv1P1E4rqK9QfmlR77LcH8HTqHTqjXqwFq6XTdAjPxqet1oNmzY2L/Xmsfv/kJpuP+0f+d6ff+VZf0Xz/B5RY/Xk+rEK+lhR4m8LQYXeWv5/Ucxt9f+6fCqcvvydJ6rfvPxzzDYx7Nm4q8DHjNLnNlYq+bpHkoX1t6fqXl+tKX6aLPxx06H60/nV2NdLrgFr3hNpN57XsLL2VjKXPi17C33XsBR+ae9B2uD8+4pKzX0eWeqPq29RXzLP7XvzPM/8B+w09RZaEboFHdNdtSHWHTJDo+T0+Hxj3XzKuZr2i7V45f8rZxPyrOyr8czH/PZjV+a99B9n3rCqcr+jxxa/L7x+xuKvN0tLl1NqzX7tHlSe5iNJjti07NrMY21lT9C7wvnl7nGk8DWlWtWOdWqH++yVN+vLrN63nPcf8X5XSXdHndFhq6H1+/6R+c/r5/n+H4PPX1+3DZLRdOa7P0DNl7QbVQcAAAAASUVORK5CYII=';
-  const playerImgSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAZCAYAAAB89yFLAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAELUlEQVRoge2Wf2gUVRTHP2e+v8k3lEmaFQrFlJj6Fg9AmCWAUr5UTG4fYchR4icvR+ZEEH/kAKKI8UGcVLVImPgAL5wNQcSXp3VQkFZ1aIWy3HRuGyqXhU1ZEGUVgpFrtxqgIhHGIiVRBVQqUqfPa3S4vNTcczMdmbsfN+dmRmTZPznDz3v9QpZ1t79bb+90z6ZKTd7y7bbjJ89jMPlPTz/7sZdxOX7xmfrTqthnG93IZDEZjHeYZ9E4bkcdBGsUsG+cRhHLsdRLSc5R3PE9xFSc9v6lCv+EYLjsVziPN6tNPT8vHm6M06k3vF6+0Hxgh5qVRdPXxc0Ge/e6uHcE7s9a77nlb9XPzKKrS/v5xn9dhyd4U8V3HMxrve+uA7XMe7vl0zN66zTyYsEj8xa5db4/96Oz2X1Q53+9P7wLyQnrLtXMgDHfdUeA+hwJ1XMqXvXLDa+vNU06T7a4cOPbX1a+fUO7McN65kGH9z9xrM+4Tc6eqTUzc1bOq/DRXOV/Xdyv6PeqrxC7Z02/Xk4G4m/NOfWdP5k5XVyX+g0dVwc5W2rP2xqPo7rOHYvtZzDzWVaY7OFGldPTMM9m3X9z86wZ+6flQjz6yipXdMxhPprH27Z6F/Zmnnv0GzOPEftNVOn07iRr+kGZbRyD7yL8+9Nz0bPRnPntZaP6PRn9R6vlvQnf+YJm7pjV1cdNU2nvNtZ7x4bRlOx3b3GHPrxPa4xuPje0sdX8b28GrY3rfZmy5bd4mnn70+p+5dMtbsPXoTD6XqdpTeHMCcvY0aPeWlXPhc09nvkBr50ZjMe3DLy4d4VdNiPY3rb9Z1P7efTOJbh+nD0cPQvfo7tpjvHQqO5fXEd49xpORdXq+VC8/3zp1GQz3GHeW1uD51GQrMuOLZHzJzHXfge+R3XhXPUSu7L78znJ0qvLgn6aGz+9KXf86v+bZtF+RXsvF9X7fl+yVyG+hLxYcavXCyhfHpTuX0WLjlAXu6jxm8K/9Dj+0hUvC1g+Ko1Ke/fz0xlxq+jRmfG78jlXOz1v0gP/zj8fbxnpz/p+V/jXD/gVQcg9TuEQqIpFYqFQqFSqVQqFQoFQoVCoVIoVCoVC4XxPZf9wGAkgOJRYcK1zAAAAAElFTkSuQmCC';
-  const enemyImgSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAZCAYAAAB89yFLAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAEXklEQVRoge2XQU4UURiFZ1qwC4kbQkR1JRQIRpHQikVmoyQhURRhLsiKFxYMTUTcQkQmycsINLCJ0tCErZCwhwlObkmhnOmvRmUwsQkWlZz
+const roadWidth = 200;
+const roadX = (canvas.width - roadWidth) / 2;
+const laneCount = 3;
+const laneWidth = roadWidth / laneCount;
+
+let keys = {};
+document.addEventListener('keydown', e => keys[e.key] = true);
+document.addEventListener('keyup', e => keys[e.key] = false);
+
+// Base64 images for player car and enemy car (simple colored rectangles)
+const playerImg = new Image();
+playerImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAvElEQVRYR+3XwQ2DMBBF0fW5Cd2ACNgNrg6kYcBO6DTaAGxU0pLkLFPE6jBgb0vuRpUQgxFDw/dwN3pfg3BGHMeqzmIjiF2gDx/nmB9kRJwIvB+gFLgOiPZF3AHDkArsAPYFGzjI5r1IKn/maGOS8VyCR6QPh6nHdXAap+nCZTVHvHJOn3Mf89Qq/E4Ju2r/dl5cl8RReeGJQKxjG6OG9FQvoUOJHfMPZ2BTANb4jfHLgC4N+EEkHzECfoDLbD6Agsmc0nY+Qb6z0/kB3sEQV3EgncUAAAAASUVORK5CYII=';
+
+const enemyImg = new Image();
+enemyImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAv0lEQVRYR+3WQQrDMAxF0Xk+AlVkNXCfAOqg3UBnsBHZBJyRrBLiC4UPnMhuhR3jbb3PGb+OFkDzfCNh9CSH8DfANH/ABYdo9j1xVjQw8DB7A4PfSxRZnXKDSexZ86ht0prMq/jUFE2o+HT6AtwdAMViAbqA4eQKu0zDlzBng6yAS6QHZ4E2gEtyQkXrXcEVYh2BAvAcXqDX+A8tjCXwRfDXk9AK/DfhPCrQkA6PA3F4Df14AMq0q5yoV1iYAAAAASUVORK5CYII=';
+
+// Player info
+const player = {
+  lane: 1, // middle lane (0,1,2)
+  width: 40,
+  height: 70,
+  y: canvas.height - 90,
+  speed: 5
+};
+
+// Enemy cars array
+let enemies = [];
+const enemyWidth = 40;
+const enemyHeight = 70;
+const enemySpeedStart = 3;
+let enemySpeed = enemySpeedStart;
+let enemySpawnInterval = 1500; // ms
+let lastEnemySpawn = 0;
+
+// Game state
+let gameOver = false;
+let score = 0;
+
+// Helper: get x position for a lane index
+function laneToX(lane) {
+  return roadX + lane * laneWidth + (laneWidth - player.width)/2;
+}
+
+// Draw road (gray with white dashed lines between lanes)
+function drawRoad() {
+  // Road background
+  ctx.fillStyle = '#555';
+  ctx.fillRect(roadX, 0, roadWidth, canvas.height);
+
+  // Left and right road borders
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(roadX, 0);
+  ctx.lineTo(roadX, canvas.height);
+  ctx.moveTo(roadX + roadWidth, 0);
+  ctx.lineTo(roadX + roadWidth, canvas.height);
+  ctx.stroke();
+
+  // Lane dividers (dashed)
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([20, 20]);
+  for(let i=1; i<laneCount; i++) {
+    let x = roadX + i * laneWidth;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+
+// Draw player car
+function drawPlayer() {
+  const x = laneToX(player.lane);
+  ctx.drawImage(playerImg, x, player.y, player.width, player.height);
+}
+
+// Draw enemies
+function drawEnemies() {
+  enemies.forEach(e => {
+    const x = laneToX(e.lane);
+    ctx.drawImage(enemyImg, x, e.y, enemyWidth, enemyHeight);
+  });
+}
+
+// Update player position based on keys
+function updatePlayer() {
+  if (keys['ArrowLeft'] && player.lane > 0) {
+    player.lane--;
+    keys['ArrowLeft'] = false; // Prevent continuous movement
+  }
+  if (keys['ArrowRight'] && player.lane < laneCount -1) {
+    player.lane++;
+    keys['ArrowRight'] = false;
+  }
+}
+
+// Update enemies position, remove off screen, check collisions
+function updateEnemies(deltaTime) {
+  for (let i = enemies.length -1; i>=0; i--) {
+    enemies[i].y += enemySpeed;
+
+    // Collision check with player
+    if (
+      enemies[i].lane === player.lane &&
+      enemies[i].y + enemyHeight > player.y &&
+      enemies[i].y < player.y + player.height
+    ) {
+      gameOver = true;
+    }
+
+    // Remove enemies off screen
+    if (enemies[i].y > canvas.height) {
+      enemies.splice(i, 1);
+      score++;
+      // Increase speed every 5 cars dodged
+      if(score % 5 === 0) enemySpeed += 0.5;
+    }
+  }
+
+  // Spawn enemies periodically
+  if (!gameOver && performance.now() - lastEnemySpawn > enemySpawnInterval) {
+    let lane = Math.floor(Math.random() * laneCount);
+    enemies.push({ lane: lane, y: -enemyHeight });
+    lastEnemySpawn = performance.now();
+  }
+}
+
+// Draw score and game over message
+function drawUI() {
+  ctx.fillStyle = 'white';
+  ctx.font = '20px Arial';
+  ctx.fillText('Score: ' + score, 10, 30);
+
+  if (gameOver) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, canvas.height/2 - 50, canvas.width, 100);
+
+    ctx.fillStyle = 'red';
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
+    ctx.font = '20px Arial';
+    ctx.fillText('Refresh to try again', canvas.width/2, canvas.height/2 + 40);
+    ctx.textAlign = 'start';
+  }
+}
+
+let lastTime = 0;
+function gameLoop(time=0) {
+  const deltaTime = time - lastTime;
+  lastTime = time;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawRoad();
+
+  if (!gameOver) {
+    updatePlayer();
+    updateEnemies(deltaTime);
+  }
+  drawPlayer();
+  drawEnemies();
+  drawUI();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Start game
+gameLoop();
+</script>
+</body>
+</html>
 
