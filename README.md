@@ -3,22 +3,63 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crossroads Car Game with Movement</title>
+<title>Crossroads Car Game with Controls</title>
 <style>
   body, html {
     margin: 0; padding: 0; background: #222;
-    display: flex; justify-content: center; align-items: center; height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100vh; user-select: none;
+    font-family: Arial, sans-serif;
+  }
+  #game {
+    background: #444;
+    border: 2px solid #ccc;
+    display: block;
+  }
+  #controls {
+    margin-top: 10px;
+    user-select: none;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    max-width: 400px;
+  }
+  .btn {
+    background: #666;
+    border: none;
+    color: white;
+    font-size: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 60px;
     user-select: none;
   }
-  canvas {
-    background: #444;
-    display: block;
-    border: 2px solid #ccc;
+  .btn:active {
+    background: #999;
+  }
+  /* Layout arrow keys */
+  #controls {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .spacer {
+    width: 60px;
   }
 </style>
 </head>
 <body>
+
 <canvas id="game" width="400" height="600"></canvas>
+
+<div id="controls">
+  <button class="btn" id="btn-up">↑</button>
+</div>
+<div id="controls" style="margin-top:5px;">
+  <button class="btn" id="btn-left">←</button>
+  <div class="spacer"></div>
+  <button class="btn" id="btn-right">→</button>
+</div>
+<div id="controls" style="margin-top:5px;">
+  <button class="btn" id="btn-down">↓</button>
+</div>
 
 <script>
 const canvas = document.getElementById('game');
@@ -37,7 +78,7 @@ const player = {
   width: 50,
   height: 90,
   color: 'red',
-  speed: 0.15,  // lane change animation speed
+  speed: 0.15,
   verticalSpeed: 4,
   minY: 100,
   maxY: canvas.height - 120
@@ -70,11 +111,9 @@ function laneToX(lane) {
 }
 
 function drawRoad() {
-  // road background
   ctx.fillStyle = '#555';
   ctx.fillRect(roadX, 0, roadWidth, canvas.height);
 
-  // road edges
   ctx.strokeStyle = 'white';
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -84,7 +123,6 @@ function drawRoad() {
   ctx.lineTo(roadX + roadWidth, canvas.height);
   ctx.stroke();
 
-  // lane dashed lines (scrolling)
   ctx.strokeStyle = 'white';
   ctx.lineWidth = 2;
   ctx.setLineDash([20, 20]);
@@ -103,22 +141,15 @@ function drawRoad() {
 }
 
 function drawCar(x, y, color) {
-  // body
   ctx.fillStyle = color;
   ctx.fillRect(x, y, player.width, player.height);
-
-  // windows (simple shapes)
   ctx.fillStyle = '#ccc';
   ctx.fillRect(x + 10, y + 20, player.width - 20, 25);
-
-  // wheels
   ctx.fillStyle = 'black';
   const wheelRadius = 8;
-  // front wheels
   ctx.beginPath();
   ctx.arc(x + 12, y + player.height - 10, wheelRadius, 0, Math.PI * 2);
   ctx.arc(x + player.width - 12, y + player.height - 10, wheelRadius, 0, Math.PI * 2);
-  // back wheels
   ctx.arc(x + 12, y + 10, wheelRadius, 0, Math.PI * 2);
   ctx.arc(x + player.width - 12, y + 10, wheelRadius, 0, Math.PI * 2);
   ctx.fill();
@@ -135,7 +166,6 @@ function drawEnemies() {
 }
 
 function updatePlayer() {
-  // left/right lane change
   if((keys['arrowleft'] || keys['a']) && player.targetLane > 0) {
     player.targetLane = player.targetLane - 1;
     keys['arrowleft'] = false;
@@ -147,7 +177,6 @@ function updatePlayer() {
     keys['d'] = false;
   }
 
-  // smooth lane movement
   const targetX = laneToX(player.targetLane);
   if (Math.abs(player.x - targetX) > 1) {
     player.x += (targetX - player.x) * player.speed;
@@ -156,14 +185,12 @@ function updatePlayer() {
     player.lane = player.targetLane;
   }
 
-  // up/down movement
   if(keys['arrowup'] || keys['w']) {
     player.y -= player.verticalSpeed;
   }
   if(keys['arrowdown'] || keys['s']) {
     player.y += player.verticalSpeed;
   }
-  // limit player y inside road bounds
   if(player.y < player.minY) player.y = player.minY;
   if(player.y > player.maxY) player.y = player.maxY;
 }
@@ -172,19 +199,17 @@ function updateEnemies(deltaTime) {
   for(let i = enemies.length - 1; i >= 0; i--) {
     enemies[i].y += enemySpeed;
 
-    // collision check
     if(enemies[i].lane === player.lane &&
        enemies[i].y + enemyHeight > player.y + 20 &&
        enemies[i].y < player.y + player.height - 20) {
       gameOver = true;
     }
 
-    // remove offscreen enemies and increase score
     if(enemies[i].y > canvas.height) {
       enemies.splice(i, 1);
       score++;
       if(score % 5 === 0) enemySpeed += 0.5;
-      if(enemySpawnInterval > 600) enemySpawnInterval -= 20; // speed up spawn
+      if(enemySpawnInterval > 600) enemySpawnInterval -= 20;
     }
   }
 
@@ -218,7 +243,7 @@ function gameLoop(time=0) {
   lastTime = time;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
   roadLineOffset += enemySpeed;
   if(roadLineOffset > roadLineHeight + roadLineGap) {
     roadLineOffset = 0;
@@ -240,8 +265,33 @@ function gameLoop(time=0) {
 // Initialize player position
 player.x = laneToX(player.lane);
 player.y = canvas.height - 120;
-
 gameLoop();
+
+// Touch buttons
+const btnUp = document.getElementById('btn-up');
+const btnDown = document.getElementById('btn-down');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+
+function pressKey(key) {
+  keys[key] = true;
+}
+function releaseKey(key) {
+  keys[key] = false;
+}
+
+btnUp.addEventListener('touchstart', e => { e.preventDefault(); pressKey('arrowup'); pressKey('w'); });
+btnUp.addEventListener('touchend', e => { e.preventDefault(); releaseKey('arrowup'); releaseKey('w'); });
+
+btnDown.addEventListener('touchstart', e => { e.preventDefault(); pressKey('arrowdown'); pressKey('s'); });
+btnDown.addEventListener('touchend', e => { e.preventDefault(); releaseKey('arrowdown'); releaseKey('s'); });
+
+btnLeft.addEventListener('touchstart', e => { e.preventDefault(); pressKey('arrowleft'); pressKey('a'); });
+btnLeft.addEventListener('touchend', e => { e.preventDefault(); releaseKey('arrowleft'); releaseKey('a'); });
+
+btnRight.addEventListener('touchstart', e => { e.preventDefault(); pressKey('arrowright'); pressKey('d'); });
+btnRight.addEventListener('touchend', e => { e.preventDefault(); releaseKey('arrowright'); releaseKey('d'); });
 </script>
+
 </body>
 </html>
