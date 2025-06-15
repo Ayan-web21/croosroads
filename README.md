@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crossroads Running Car Game</title>
+<title>Crossroads Car Game with Movement</title>
 <style>
   body, html {
     margin: 0; padding: 0; background: #222;
@@ -33,11 +33,14 @@ const player = {
   lane: 1,
   targetLane: 1,
   x: 0,
-  y: canvas.height - 120,
+  y: 0,
   width: 50,
   height: 90,
   color: 'red',
   speed: 0.15,  // lane change animation speed
+  verticalSpeed: 4,
+  minY: 100,
+  maxY: canvas.height - 120
 };
 
 let keys = {};
@@ -132,7 +135,7 @@ function drawEnemies() {
 }
 
 function updatePlayer() {
-  // check controls to change lanes
+  // left/right lane change
   if((keys['arrowleft'] || keys['a']) && player.targetLane > 0) {
     player.targetLane = player.targetLane - 1;
     keys['arrowleft'] = false;
@@ -152,6 +155,17 @@ function updatePlayer() {
     player.x = targetX;
     player.lane = player.targetLane;
   }
+
+  // up/down movement
+  if(keys['arrowup'] || keys['w']) {
+    player.y -= player.verticalSpeed;
+  }
+  if(keys['arrowdown'] || keys['s']) {
+    player.y += player.verticalSpeed;
+  }
+  // limit player y inside road bounds
+  if(player.y < player.minY) player.y = player.minY;
+  if(player.y > player.maxY) player.y = player.maxY;
 }
 
 function updateEnemies(deltaTime) {
@@ -170,6 +184,7 @@ function updateEnemies(deltaTime) {
       enemies.splice(i, 1);
       score++;
       if(score % 5 === 0) enemySpeed += 0.5;
+      if(enemySpawnInterval > 600) enemySpawnInterval -= 20; // speed up spawn
     }
   }
 
@@ -222,8 +237,9 @@ function gameLoop(time=0) {
   requestAnimationFrame(gameLoop);
 }
 
-// Start player in middle lane
+// Initialize player position
 player.x = laneToX(player.lane);
+player.y = canvas.height - 120;
 
 gameLoop();
 </script>
